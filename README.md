@@ -17,3 +17,11 @@ npx hardhat help
 ## build-solidity-web3-app
 
 https://buildspace.so/p/build-solidity-web3-app/lessons/LEe5e84eb7-ec9d-4591-b846-cad5ff5d4434
+
+
+Run eth blockchain;
+```
+
+>> npx hardhat node
+
+```

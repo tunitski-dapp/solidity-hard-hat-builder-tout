@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "deploy": "npx hardhat run scripts/run.js"
+    "deploy": "npx hardhat run scripts/run.js --network localhost"
   },
   "author": "",
   "license": "ISC",
