@@ -10,6 +10,17 @@ const main = async () => {
     await waveContract.deployed();
 
     console.log("WavePortal address: ", waveContract.address);
+
+    let waveTxn = await waveContract.wave("A message!");
+    await waveTxn.wait(); // Wait for the transaction to be mined
+    
+    return;
+    const [_, randomPerson] = await hre.ethers.getSigners();
+    waveTxn = await waveContract.connect(randomPerson).wave("Another message!");
+    await waveTxn.wait(); // Wait for the transaction to be mined
+  
+    let allWaves = await waveContract.getAllWaves();
+    console.log(allWaves);
   };
   
   const runMain = async () => {
