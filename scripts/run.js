@@ -11,31 +11,39 @@ const main = async () => {
   });
   await waveContract.deployed();
 
-  let contractBalance = await hre.ethers.provider.getBalance(
-    waveContract.address
-  );
-  console.log(
-    "Contract balance:",
-    hre.ethers.utils.formatEther(contractBalance)
-  );
+  console.log("Contract addy:", waveContract.address);
 
-  /*
-   * Send Wave
-   */
-  let waveTxn = await waveContract.wave("My first message!");
-  await waveTxn.wait();
+  // let contractBalance = await hre.ethers.provider.getBalance(
+  //   waveContract.address
+  // );
+  // console.log(
+  //   "Contract balance:",
+  //   hre.ethers.utils.formatEther(contractBalance)
+  // );
 
-  /*
-   * Get Contract balance to see what happened!
-   */
-  contractBalance = await hre.ethers.provider.getBalance(waveContract.address);
-  console.log(
-    "Contract balance:",
-    hre.ethers.utils.formatEther(contractBalance)
-  );
+  // /*
+  //  * Send Wave
+  //  */
+  // let waveTxn = await waveContract.wave("My first message!");
+  // await waveTxn.wait();
 
-  let allWaves = await waveContract.getAllWaves();
-  console.log(allWaves);
+  // const waveTxn3 = await waveContract.wave("This is wave #2");
+  // await waveTxn3.wait();
+
+  // const waveTxn2 = await waveContract.wave("This is wave #3");
+  // await waveTxn2.wait();
+
+  // /*
+  //  * Get Contract balance to see what happened!
+  //  */
+  // contractBalance = await hre.ethers.provider.getBalance(waveContract.address);
+  // console.log(
+  //   "Contract balance:",
+  //   hre.ethers.utils.formatEther(contractBalance)
+  // );
+
+  // let allWaves = await waveContract.getAllWaves();
+  // console.log(allWaves);
 };
 
 const runMain = async () => {
