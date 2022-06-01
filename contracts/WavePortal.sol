@@ -4,67 +4,70 @@ pragma solidity ^0.8.4;
 
 import "hardhat/console.sol";
 
+struct Messages{
+    uint256 lastWavedAt;
+    uint256 maxWaveAmount;
+    uint256 wavedCount;
+}
+
+struct Wave {
+    address waver; // The address of the user who waved.
+    string message; // The message the user sent.
+    uint256 timestamp; // The timestamp when the user waved.
+}
+
 contract WavePortal {
-    uint256 amountWaves;
-
-    uint256 private seed;
-
-    mapping(address => uint256) public lastWavedAt;
-
     event NewWave(address indexed from, uint256 timestamp, string message);
 
-    struct Wave {
-        address waver; // The address of the user who waved.
-        string message; // The message the user sent.
-        uint256 timestamp; // The timestamp when the user waved.
-    }
+    mapping(address => Messages) public messageStore;
 
-    Wave[] waves;
+    address payable owner;
+
+    Wave[] public waves;
 
     constructor() payable {
-        console.log("This is my smart(dumb) contact");
-
-        seed = (block.timestamp + block.difficulty) % 100;
+        owner = payable(msg.sender);
     }
 
     function wave(string memory _message) public {
+        Messages memory userMessage = messageStore[msg.sender];
+
         require(
-            lastWavedAt[msg.sender] + 15 minutes < block.timestamp,
-            "Wait 15m"
+            userMessage.maxWaveAmount <= userMessage.wavedCount,
+            "You can not send message, because you limit is reached"
         );
         
-        lastWavedAt[msg.sender] = block.timestamp;
-
-        amountWaves += 1;
-        console.log("%s has waved w/ message %s", msg.sender, _message);
+        userMessage.lastWavedAt = block.timestamp;
+        userMessage.wavedCount++;
 
         waves.push(Wave(msg.sender, _message, block.timestamp));
-
-        seed = (block.difficulty + block.timestamp + seed) % 100;
-        console.log("Random # generated: %d", seed);
-        
-        if (seed <= 50) {
-            uint256 prizeAmount = 0.0001 ether;
-        
-            require(
-                prizeAmount <= address(this).balance,
-                "Trying to withdraw more money than the contract has."
-            );
-
-            (bool success, ) = (msg.sender).call{value: prizeAmount}("");
-        
-            require(success, "Failed to withdraw money from contract.");
-        }
 
         emit NewWave(msg.sender, block.timestamp, _message);
     }
 
     function getTotalWaves() public view returns (uint256){
-        console.log("We have %d total waves!", amountWaves);
-        return amountWaves;
+        return waves.length;
     }
 
-    function getAllWaves() public view returns (Wave[] memory) {
-        return waves;
+    function cleanMessages() public {
+        require(owner == msg.sender);
+        delete waves;
+    }
+
+    function getUserProfile() external view returns(Messages memory) {
+        return messageStore[msg.sender];
+    }
+
+    function byeMoreMessages() public payable {
+        (bool success, ) = owner.call{value: 10 ether }("");
+        require(success, "Failed to withdraw money from contract.");
+        
+        Messages memory userMessage = messageStore[msg.sender];
+        userMessage.maxWaveAmount += 5;
+    }
+
+    function destroyContract() external {
+        require(owner == msg.sender);
+        selfdestruct(owner);
     }
 }

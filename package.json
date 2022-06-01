@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "deploy": "npx hardhat run scripts/run.js --network localhost",
-    "deploy:rinkeby": "npx hardhat run scripts/run.js --network rinkeby"
+    "deploy:rinkeby": "npx hardhat run scripts/run.js --network rinkeby",
+    "deploy:ganache": "npx hardhat run scripts/run-ganache.js --network ganache"
   },
   "author": "",
   "license": "ISC",
@@ -17,5 +18,9 @@
     "ethereum-waffle": "^3.4.4",
     "ethers": "^5.6.5",
     "hardhat": "^2.9.5"
+  },
+  "dependencies": {
+    "@nomiclabs/hardhat-etherscan": "^3.0.4",
+    "dotenv": "^16.0.1"
   }
 }
