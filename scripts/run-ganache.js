@@ -1,26 +1,26 @@
 const main = async () => {
-  const [deployer] = await hre.ethers.getSigners();
+  const [deployer, randomPerson] = await hre.ethers.getSigners();
   const accountBalance = await deployer.getBalance();
 
   console.log("Deploying contracts with account: ", deployer.address);
   console.log("Account balance: ", accountBalance.toString());
 
-  const waveContractFactory = await hre.ethers.getContractFactory("WavePortal");
+  const waveContractFactory = await hre.ethers.getContractFactory(
+    "MessagesPortal"
+  );
   const waveContract = await waveContractFactory.deploy({
-    value: hre.ethers.utils.parseEther("1"),
+    // value: hre.ethers.utils.parseEther("1"),
   });
   await waveContract.deployed();
 
-  console.log("Contract addy:", waveContract.address);
+  console.log("Contract address:", waveContract.address);
 
-  const waveTxn2 = await waveContract.byeMoreMessages();
-  await waveTxn2.wait();
+  // const waveTxn2 = await waveContract
+  //   .connect(randomPerson)
+  //   .byeMoreMessages({ value: hre.ethers.utils.parseEther("0.2") });
+  // await waveTxn2.wait();
 
-  const waveTxn4 = await waveContract.byeMoreMessages();
-  const some = await waveTxn4.getUserProfile();
-
-  console.log(some);
-  
+  // const waveTxn4 = await waveContract.connect(randomPerson).getUserProfile();
 };
 
 const runMain = async () => {
