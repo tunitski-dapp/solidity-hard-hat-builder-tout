@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "npx hardhat test",
     "deploy": "npx hardhat run scripts/run.js --network localhost",
     "deploy:nft": "npx hardhat run scripts/run-dynamic.js --network localhost",
     "deploy:rinkeby": "npx hardhat run scripts/run.js --network rinkeby",
@@ -18,7 +18,8 @@
     "chai": "^4.3.6",
     "ethereum-waffle": "^3.4.4",
     "ethers": "^5.6.5",
-    "hardhat": "^2.9.5"
+    "hardhat": "^2.9.5",
+    "mocha": "^10.0.0"
   },
   "dependencies": {
     "@nomiclabs/hardhat-etherscan": "^3.0.4",
