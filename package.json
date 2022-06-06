@@ -6,6 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "deploy": "npx hardhat run scripts/run.js --network localhost",
+    "deploy:nft": "npx hardhat run scripts/run-dynamic.js --network localhost",
     "deploy:rinkeby": "npx hardhat run scripts/run.js --network rinkeby",
     "deploy:ganache": "npx hardhat run scripts/run-ganache.js --network ganache"
   },
@@ -21,6 +22,7 @@
   },
   "dependencies": {
     "@nomiclabs/hardhat-etherscan": "^3.0.4",
+    "@openzeppelin/contracts": "^4.6.0",
     "dotenv": "^16.0.1"
   }
 }
