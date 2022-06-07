@@ -13,25 +13,25 @@ const main = async () => {
 
   console.log("Contract addy:", waveContract.address);
 
-  let tiket1 = 1;
+  // let tiket1 = 1;
 
-  let txn1 = await waveContract.buyTiket(tiket1);
-  await txn1.wait();
+  // let txn1 = await waveContract.buyTiket(tiket1);
+  // await txn1.wait();
 
-  const allTiket = await waveContract.getTikets();
-  console.log(allTiket);
+  // const allTiket = await waveContract.getTikets();
+  // console.log(allTiket);
 
-  let tx2 = await waveContract.shareTiket(random.address, tiket1);
-  await tx2.wait();
+  // let tx2 = await waveContract.shareTiket(random.address, tiket1);
+  // await tx2.wait();
 
-  let tx3 = await waveContract.connect(random).useTiket(tiket1);
-  await tx3.wait();
+  // let tx3 = await waveContract.connect(random).useTiket(tiket1);
+  // await tx3.wait();
 
-  const allTiket2 = await waveContract.connect(deployer).getTikets();
-  console.log(allTiket2);
+  // const allTiket2 = await waveContract.connect(deployer).getTikets();
+  // console.log(allTiket2);
 
-  const allTiket3 = await waveContract.connect(deployer).getTiket(tiket1);
-  console.log(allTiket3);
+  // const allTiket3 = await waveContract.connect(deployer).getTiket(tiket1);
+  // console.log(allTiket3);
 
   // let contractBalance = await hre.ethers.provider.getBalance(
   //   waveContract.address

@@ -11,10 +11,11 @@ describe("Greeter", function () {
   });
 
   it("Should mint the ticket", async function () {
+    const [owner, addr1] = await ethers.getSigners();
     const tx = await contract.mintTiket("My secret", 1000);
     await tx.wait();
 
-    const tx2 = await contract.mintTiket("My secret3", 10003);
+    const tx2 = await contract.mintTiket("My secret2", 10002);
     await tx2.wait();
 
     const tx3 = await contract.mintTiket("My secret3", 10003);
@@ -22,32 +23,38 @@ describe("Greeter", function () {
 
     const tikets = await contract.getAllTikets();
 
-    console.log(tikets);
-
-    expect(tikets.length).to.equal(1);
-    // expect(await greeter.greet()).to.equal("Hello, world!");
-    // const setGreetingTx = await greeter.setGreeting("Hola, mundo!");
-    // // wait until the transaction is mined
-    // await setGreetingTx.wait();
-    // expect(await greeter.greet()).to.equal("Hola, mundo!");
+    expect(tikets.length).to.equal(3);
   });
+
+  async function getSome(owner) {
+    const myBalance = await contract.connect(owner).myBalance();
+    console.log(`Why? ${owner}`);
+    for (let index = 0; index < myBalance; index++) {
+      console.log(index);
+      const tiket = await contract.connect(owner).getMyTiketByIndex(index);
+      console.log(tiket);
+    }
+  }
 
   it("Should what?", async () => {
     let tikets = await contract.getAllTikets();
     const [owner, addr1] = await ethers.getSigners();
 
-    expect(await contract.connect(owner).myBalance()).to.equal(1);
+    await getSome(owner);
+    await getSome(addr1);
+
+    expect(await contract.connect(owner).myBalance()).to.equal(3);
     expect(await contract.connect(addr1).myBalance()).to.equal(0);
 
-    const tx = await contract.connect(addr1).buyTiket(0);
+    const tx = await contract.connect(addr1).buyTiket(1);
     await tx.wait();
 
     tikets = await contract.getAllTikets();
-    console.log(tikets);
 
-    expect(await contract.connect(owner).myBalance()).to.equal(0);
+    expect(await contract.connect(owner).myBalance()).to.equal(2);
     expect(await contract.connect(addr1).myBalance()).to.equal(1);
 
-    expect(tikets.length).to.equal(1);
+    await getSome(owner);
+    await getSome(addr1);
   });
 });
