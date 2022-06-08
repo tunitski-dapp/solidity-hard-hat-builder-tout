@@ -14,6 +14,15 @@ struct Tiket{
 }
 
 contract DynamicNft{
+
+    event BuyTiket(address indexed who, uint indexed tiketId);
+
+    event UsedTiket(address indexed who, uint indexed tiketId);
+
+    event SharedTiket(address indexed to, uint indexed tiketId);
+
+    event CreateTiket(address indexed who, uint indexed tiketId);
+
     using Counters for Counters.Counter;
 
     Counters.Counter private tiketIds;
@@ -66,9 +75,11 @@ contract DynamicNft{
         balances[msg.sender] += 1;
         
         tiketIds.increment();
+
+        emit CreateTiket(msg.sender, newTiketId);
     }
 
-    function buyTiket(uint tiketId) external {
+    function buyTiket(uint tiketId) external payable {
         address tiketOwner = tiketsOwner[tiketId];
         require(tiketOwner != address(0), "Tiket not exist!");
 
@@ -103,6 +114,11 @@ contract DynamicNft{
         // can sell tiket only once
         result.forSale = false;
         result.price = 0;
+
+        emit BuyTiket(msg.sender, tiketId);
+
+        (bool success, ) = tiketOwner.call{value: msg.value}("");
+        require(success, "Failed!");
     }
 
     function myBalance() external view returns(uint){
@@ -129,11 +145,15 @@ contract DynamicNft{
 
     function allowUseTiket(address to, uint tiketId) external isTiketOwner(msg.sender, tiketId) {
         sharedTiketWith[tiketId][to] = true;
+
+        emit SharedTiket(to, tiketId);
     }
 
     function useTiket(uint tiketId) external canUseTiket(msg.sender, tiketId) {
         Tiket storage usedTiket = allTikets[tiketsMetadataIndex[tiketId]];
         usedTiket.enable = false;
+
+        emit UsedTiket(msg.sender, tiketId);
     }
 
     function showTiket(uint tiketId) external view returns(Tiket memory){
