@@ -13,7 +13,7 @@ struct Tiket {
     uint price;
 }
 
-contract DynamicNft {
+contract Ticketing {
     event BuyTiket(address indexed who, uint indexed tiketId);
 
     event UsedTiket(address indexed who, uint indexed tiketId);

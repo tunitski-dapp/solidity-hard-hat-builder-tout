@@ -45,9 +45,9 @@ contract EventTicketing {
     function createEmptyEvent(
         string memory _name,
         string memory _description,
-        uint _date,
-        uint _ticketAmount,
-        uint _ticketPrice,
+        uint256 _date,
+        uint256 _ticketAmount,
+        uint256 _ticketPrice,
         string[] memory _imageUrls
     ) external {
         uint256 newEventId = eventIds.current();
@@ -55,7 +55,7 @@ contract EventTicketing {
         eventOwner[newEventId] = msg.sender;
         enumerableEventId[msg.sender][balanceOf(msg.sender)] = newEventId;
 
-        eventBalances[msg.sender]++;
+        eventBalances[msg.sender] += 1;
 
         eventDetails.push(
             EventDetails(
