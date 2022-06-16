@@ -8,9 +8,9 @@ import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
 struct Ticket {
     bool enable;
-    uint row;
-    uint seet;
-    uint price;
+    uint256 row;
+    uint256 seet;
+    uint256 price;
 }
 
 contract TicketsCollection is ERC721Enumerable {
@@ -20,13 +20,13 @@ contract TicketsCollection is ERC721Enumerable {
 
     Ticket[] private Tickets;
 
-    mapping(uint => bool) private TicketForSale;
+    mapping(uint256 => bool) private TicketForSale;
 
     constructor(
         string memory _eventName,
         uint256 _ticketsAmount,
         uint256 _seetsOnRow,
-        uint _startPrice
+        uint256 _startPrice
     ) ERC721(_eventName, "TCK") {
         mintBatchTicket(msg.sender, _ticketsAmount, _seetsOnRow, _startPrice);
     }
@@ -35,11 +35,11 @@ contract TicketsCollection is ERC721Enumerable {
         address _author,
         uint256 _TicketsAmount,
         uint256 _seetsOnRow,
-        uint _startPrice
+        uint256 _startPrice
     ) internal {
-        uint row = 1;
+        uint256 row = 1;
 
-        uint currentSeetInRow = 0;
+        uint256 currentSeetInRow = 0;
 
         for (uint256 i = 0; i < _TicketsAmount; i++) {
             currentSeetInRow += 1;
@@ -61,7 +61,7 @@ contract TicketsCollection is ERC721Enumerable {
         }
     }
 
-    function buyTicket(uint _ticketId) external payable {
+    function buyTicket(uint256 _ticketId) external payable {
         require(TicketForSale[_ticketId], "Ticket not for sale!");
 
         address ticketOwner = ownerOf(_ticketId);
@@ -79,7 +79,7 @@ contract TicketsCollection is ERC721Enumerable {
         TicketForSale[_ticketId] = false;
     }
 
-    function sellTicket(uint _ticketId, uint _price) external {
+    function sellTicket(uint256 _ticketId, uint256 _price) external {
         require(ownerOf(_ticketId) == msg.sender, "You not a owner!");
 
         Ticket storage _ticket = Tickets[_ticketId];
@@ -88,7 +88,7 @@ contract TicketsCollection is ERC721Enumerable {
         TicketForSale[_ticketId] = true;
     }
 
-    function getTicketDetails(uint _ticketId)
+    function getTicketDetails(uint256 _ticketId)
         external
         view
         returns (Ticket memory)
@@ -106,7 +106,10 @@ contract TicketsCollection is ERC721Enumerable {
 
     function useTicket(uint256 _ticketId, bytes memory _signature) external {
         require(
-            ownerOf(_ticketId) == getAddressFromSigner(_ticketId, _signature),
+            ownerOf(_ticketId) ==
+                getMessageHashForToken(_ticketId)
+                    .toEthSignedMessageHash()
+                    .recover(_signature),
             "Wrong signature!"
         );
 
@@ -125,16 +128,5 @@ contract TicketsCollection is ERC721Enumerable {
         returns (bytes32)
     {
         return keccak256(abi.encodePacked(APPROVE_MSG_PREFIX, _tokenId));
-    }
-
-    function getAddressFromSigner(uint256 _tokenId, bytes memory _signature)
-        private
-        pure
-        returns (address)
-    {
-        return
-            getMessageHashForToken(_tokenId).toEthSignedMessageHash().recover(
-                _signature
-            );
     }
 }

@@ -1,5 +1,7 @@
 require("@nomiclabs/hardhat-waffle");
 require("@nomiclabs/hardhat-etherscan");
+require("hardhat-contract-sizer");
+// require("@nomiclabs/hardhat-ganache");
 
 require("dotenv").config();
 
@@ -21,17 +23,26 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
  */
 module.exports = {
   solidity: "0.8.4",
+  defaultNetwork: "ganache",
   networks: {
-    rinkeby: {
-      url: process.env.RINKEBY_URL,
-      accounts: [process.env.RINKEBY_PRIVATE_KEY],
-    },
     ganache: {
       url: process.env.GANACHE_URL,
-      accounts: [process.env.GANACHE_PRIVATE_KEY],
     },
   },
-  etherscan: {
-    apiKey: process.env.ETHERSCAN_API_KEY,
+  networks: {
+    // rinkeby: {
+    //   url: process.env.RINKEBY_URL,
+    //   accounts: [process.env.RINKEBY_PRIVATE_KEY],
+    // },
+    ganache: {
+      url: process.env.GANACHE_URL,
+      // accounts: [process.env.GANACHE_PRIVATE_KEY],
+      gasLimit: 0xffffffffffff,
+      defaultBalanceEther: 71,
+      allowUnlimitedContractSize: true,
+    },
   },
+  // etherscan: {
+  //   apiKey: process.env.ETHERSCAN_API_KEY,
+  // },
 };

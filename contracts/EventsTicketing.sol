@@ -4,6 +4,8 @@ pragma solidity ^0.8.4;
 
 import "@openzeppelin/contracts/utils/Counters.sol";
 
+import "./TiketsCollection.sol";
+
 struct EventDetails {
     string name;
     string description;
@@ -40,6 +42,8 @@ contract EventTicketing {
     // owner address => count events
     mapping(address => uint256) eventBalances;
 
+    mapping(uint256 => TicketsCollection) tiketingList;
+
     constructor() {}
 
     function createEmptyEvent(
@@ -66,6 +70,13 @@ contract EventTicketing {
                 _ticketPrice,
                 _imageUrls
             )
+        );
+
+        tiketingList[newEventId] = new TicketsCollection(
+            _name,
+            _ticketAmount,
+            25,
+            _ticketPrice
         );
 
         eventIds.increment();

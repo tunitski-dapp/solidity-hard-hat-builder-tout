@@ -1,5 +1,9 @@
-const { expect } = require("chai");
+const { expect, use } = require("chai");
+const { BigNumber } = require("ethers");
 const { ethers } = require("hardhat");
+// const { solidity } = require("ethereum-waffle");
+
+// use(solidity);
 
 describe("Ticketing collection", function () {
   let contract;
@@ -10,8 +14,18 @@ describe("Ticketing collection", function () {
   const startPrice = Math.pow(10, 15);
 
   before(async () => {
+    // VerifyTiketUsage
+
+    // const VerifyTicketUsageLibrary = await ethers.getContractFactory(
+    //   "VerifyTiketUsage"
+    // );
+
+    // const lib = await VerifyTicketUsageLibrary.deploy();
+    // await lib.deployed();
+
     const TicketsCollection = await ethers.getContractFactory(
       "TicketsCollection"
+      //  { libraries: { VerifyTiketUsage: lib.address } }
     );
     contract = await TicketsCollection.deploy(
       eventName,
@@ -71,53 +85,62 @@ describe("Ticketing collection", function () {
     expect(ticketOwner).to.equal(addr1.address);
 
     const ticketDetails = await contract.getTicketDetails(ticketIdForBuy);
+
+    expect(ticketDetails.row).equal(BigNumber.from(4));
+    expect(ticketDetails.seet).equal(BigNumber.from(25));
   });
 
-  //   it("Should mint the ticket", async function () {
-  //     const [owner, addr1] = await ethers.getSigners();
-  //     const tx = await contract.mintTiket("My secret", 1000);
-  //     await tx.wait();
+  it("should use ticket correctly", async () => {
+    const [owner, addr1, addr2] = await ethers.getSigners();
 
-  //     const tx2 = await contract.mintTiket("My secret2", 10002);
-  //     await tx2.wait();
+    const ticketIdForUse = 29;
 
-  //     const tx3 = await contract.mintTiket("My secret3", 10003);
-  //     await tx3.wait();
+    const wrongMessage = await owner.signMessage("wrongMessage");
 
-  //     const tikets = await contract.getAllTikets();
+    const correctHash = await contract
+      .connect(owner)
+      .getMessageHashForToken(ticketIdForUse);
 
-  //     expect(tikets.length).to.equal(3);
-  //   });
+    const wrongHashTicketId = await contract
+      .connect(owner)
+      .getMessageHashForToken(ticketIdForUse + 1);
 
-  //   async function getSome(owner) {
-  //     const myBalance = await contract.connect(owner).myBalance();
-  //     console.log(`Why? ${owner}`);
-  //     for (let index = 0; index < myBalance; index++) {
-  //       console.log(index);
-  //       const tiket = await contract.connect(owner).getMyTiketByIndex(index);
-  //       console.log(tiket);
-  //     }
-  //   }
+    const correctSignMessage = await owner.signMessage(
+      ethers.utils.arrayify(correctHash)
+    );
 
-  //   it("Should what?", async () => {
-  //     let tikets = await contract.getAllTikets();
-  //     const [owner, addr1] = await ethers.getSigners();
+    const wrongTicketIdSignMessage = await owner.signMessage(
+      ethers.utils.arrayify(wrongHashTicketId)
+    );
 
-  //     await getSome(owner);
-  //     await getSome(addr1);
+    // getMessageHashForToken
+    await expect(
+      contract
+        .connect(addr1)
+        .useTicket(ticketIdForUse, ethers.utils.arrayify(wrongMessage))
+    ).to.be.revertedWith("Wrong signature!");
 
-  //     expect(await contract.connect(owner).myBalance()).to.equal(3);
-  //     expect(await contract.connect(addr1).myBalance()).to.equal(0);
+    await expect(
+      contract
+        .connect(addr1)
+        .useTicket(
+          ticketIdForUse,
+          ethers.utils.arrayify(wrongTicketIdSignMessage)
+        )
+    ).to.be.revertedWith("Wrong signature!");
 
-  //     const tx = await contract.connect(addr1).buyTiket(1);
-  //     await tx.wait();
+    await contract
+      .connect(addr1)
+      .useTicket(ticketIdForUse, ethers.utils.arrayify(correctSignMessage));
 
-  //     tikets = await contract.getAllTikets();
+    const ticketDetails = await contract.getTicketDetails(ticketIdForUse);
 
-  //     expect(await contract.connect(owner).myBalance()).to.equal(2);
-  //     expect(await contract.connect(addr1).myBalance()).to.equal(1);
+    expect(ticketDetails.enable).equals(false);
 
-  //     await getSome(owner);
-  //     await getSome(addr1);
-  //   });
+    await expect(
+      contract
+        .connect(addr1)
+        .useTicket(ticketIdForUse, ethers.utils.arrayify(correctSignMessage))
+    ).to.be.revertedWith("This signature was use before!");
+  });
 });
