@@ -1,7 +1,5 @@
 const main = async () => {
-  const eventTicketingFactory = await hre.ethers.getContractFactory(
-    "EventTicketing"
-  );
+  const eventTicketingFactory = await hre.ethers.getContractFactory("Eventing");
   const eventTicketingContract = await eventTicketingFactory.deploy();
 
   await eventTicketingContract.deployed();

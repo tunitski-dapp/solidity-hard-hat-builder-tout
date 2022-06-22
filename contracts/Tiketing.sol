@@ -9,58 +9,59 @@ struct Tiket {
     string secret;
     bool enable;
     bool forSale;
-    uint tiketId;
-    uint price;
+    uint256 tiketId;
+    uint256 price;
 }
 
 contract Ticketing {
-    event BuyTiket(address indexed who, uint indexed tiketId);
+    event BuyTiket(address indexed who, uint256 indexed tiketId);
 
-    event UsedTiket(address indexed who, uint indexed tiketId);
+    event UsedTiket(address indexed who, uint256 indexed tiketId);
 
-    event SharedTiket(address indexed to, uint indexed tiketId);
+    event SharedTiket(address indexed to, uint256 indexed tiketId);
 
-    event CreateTiket(address indexed who, uint indexed tiketId);
+    event CreateTiket(address indexed who, uint256 indexed tiketId);
 
     using Counters for Counters.Counter;
 
     Counters.Counter private tiketIds;
 
     // count of tikets
-    mapping(address => uint) private balances;
+    mapping(address => uint256) private balances;
 
     // address: iterrable (0, 1, 2 to count tikets) tiketId
-    mapping(address => mapping(uint => uint)) private ownableTikets;
+    mapping(address => mapping(uint256 => uint256)) private ownableTikets;
 
-    mapping(address => mapping(uint => uint)) private reverseOwnableTikets;
+    mapping(address => mapping(uint256 => uint256))
+        private reverseOwnableTikets;
 
     // tiket id - to adress
-    mapping(uint => address) private tiketsOwner;
+    mapping(uint256 => address) private tiketsOwner;
 
     // tiketId - array index
-    mapping(uint => uint) private tiketsMetadataIndex;
+    mapping(uint256 => uint256) private tiketsMetadataIndex;
 
     // tiket id and who can change it oncer
-    mapping(uint => mapping(address => bool)) private sharedTiketWith;
+    mapping(uint256 => mapping(address => bool)) private sharedTiketWith;
 
     Tiket[] private allTikets;
 
-    modifier isTiketOwner(address from, uint tiketId) {
+    modifier isTiketOwner(address from, uint256 tiketId) {
         require(tiketsOwner[tiketId] == from, "You are not tiket owner");
         _;
     }
 
-    modifier canUseTiket(address who, uint tiketId) {
+    modifier canUseTiket(address who, uint256 tiketId) {
         require(sharedTiketWith[tiketId][who], "You not allow use this tiket");
         _;
     }
 
     constructor() {}
 
-    function mintTiket(string memory _secret, uint price) external {
-        uint newTiketId = tiketIds.current();
+    function mintTiket(string memory _secret, uint256 price) external {
+        uint256 newTiketId = tiketIds.current();
 
-        uint currentIndex = balanceOf(msg.sender);
+        uint256 currentIndex = balanceOf(msg.sender);
 
         ownableTikets[msg.sender][currentIndex] = newTiketId;
         reverseOwnableTikets[msg.sender][newTiketId] = currentIndex;
@@ -77,24 +78,24 @@ contract Ticketing {
         emit CreateTiket(msg.sender, newTiketId);
     }
 
-    function buyTiket(uint tiketId) external payable {
+    function buyTiket(uint256 tiketId) external payable {
         address tiketOwner = tiketsOwner[tiketId];
         require(tiketOwner != address(0), "Tiket not exist!");
 
         Tiket storage result = allTikets[tiketsMetadataIndex[tiketId]];
         require(result.forSale, "Tiket not for sale!");
 
-        uint ownerBalance = balanceOf(tiketOwner);
-        uint byerBalance = balanceOf(msg.sender);
+        uint256 ownerBalance = balanceOf(tiketOwner);
+        uint256 byerBalance = balanceOf(msg.sender);
 
         // if balabnce more than one, do swap
         if (ownerBalance > 1) {
             // seller iterable index [0 -> balance]
-            uint iterableSelledIndex = reverseOwnableTikets[tiketOwner][
+            uint256 iterableSelledIndex = reverseOwnableTikets[tiketOwner][
                 tiketId
             ];
             // last tiket id, which we will swap with removed
-            uint latestTiketIdForSwap = ownableTikets[tiketOwner][
+            uint256 latestTiketIdForSwap = ownableTikets[tiketOwner][
                 ownerBalance - 1
             ];
             reverseOwnableTikets[tiketOwner][
@@ -127,11 +128,11 @@ contract Ticketing {
         require(success, "Failed!");
     }
 
-    function myBalance() external view returns (uint) {
+    function myBalance() external view returns (uint256) {
         return balanceOf(msg.sender);
     }
 
-    function balanceOf(address to) internal view returns (uint) {
+    function balanceOf(address to) internal view returns (uint256) {
         return balances[to];
     }
 
@@ -139,7 +140,7 @@ contract Ticketing {
         return allTikets;
     }
 
-    function getMyTiketByIndex(uint index)
+    function getMyTiketByIndex(uint256 index)
         external
         view
         returns (Tiket memory)
@@ -147,7 +148,7 @@ contract Ticketing {
         return getTiketByIndex(msg.sender, index);
     }
 
-    function getTiketByIndex(address to, uint index)
+    function getTiketByIndex(address to, uint256 index)
         internal
         view
         returns (Tiket memory)
@@ -157,7 +158,7 @@ contract Ticketing {
         return allTikets[tiketsMetadataIndex[ownableTikets[to][index]]];
     }
 
-    function allowUseTiket(address to, uint tiketId)
+    function allowUseTiket(address to, uint256 tiketId)
         external
         isTiketOwner(msg.sender, tiketId)
     {
@@ -166,14 +167,17 @@ contract Ticketing {
         emit SharedTiket(to, tiketId);
     }
 
-    function useTiket(uint tiketId) external canUseTiket(msg.sender, tiketId) {
+    function useTiket(uint256 tiketId)
+        external
+        canUseTiket(msg.sender, tiketId)
+    {
         Tiket storage usedTiket = allTikets[tiketsMetadataIndex[tiketId]];
         usedTiket.enable = false;
 
         emit UsedTiket(msg.sender, tiketId);
     }
 
-    function showTiket(uint tiketId) external view returns (Tiket memory) {
+    function showTiket(uint256 tiketId) external view returns (Tiket memory) {
         Tiket memory result = allTikets[tiketsMetadataIndex[tiketId]];
         if (sharedTiketWith[tiketId][msg.sender]) {
             // uncreapt message

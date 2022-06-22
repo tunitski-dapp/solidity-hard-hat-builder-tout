@@ -23,7 +23,7 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
  */
 module.exports = {
   solidity: "0.8.4",
-  defaultNetwork: "ganache",
+  // defaultNetwork: "ganache",
   networks: {
     ganache: {
       url: process.env.GANACHE_URL,
@@ -36,10 +36,11 @@ module.exports = {
     // },
     ganache: {
       url: process.env.GANACHE_URL,
-      // accounts: [process.env.GANACHE_PRIVATE_KEY],
-      gasLimit: 0xffffffffffff,
-      defaultBalanceEther: 71,
-      allowUnlimitedContractSize: true,
+      accounts: [process.env.GANACHE_PRIVATE_KEY],
+
+      // gasLimit: 0xffffffffffff,
+      // defaultBalanceEther: 71,
+      // allowUnlimitedContractSize: true,
     },
   },
   // etherscan: {

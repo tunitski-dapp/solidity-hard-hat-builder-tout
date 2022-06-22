@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "npx hardhat test",
-    "deploy:ticket": "npx hardhat run scripts/deploy-event-ticketing.js",
+    "deploy:ticket": "npx hardhat run scripts/deploy-event-ticketing.js --network ganache",
     "deploy": "npx hardhat run scripts/run.js --network localhost",
     "deploy:nft": "npx hardhat run scripts/run-dynamic.js --network localhost",
     "deploy:nft:ganache": "npx hardhat run scripts/run-dynamic.js --network ganache",

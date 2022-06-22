@@ -10,25 +10,70 @@ struct Ticket {
     bool enable;
     uint256 row;
     uint256 seet;
-    uint256 price;
 }
 
-contract TicketsCollection is ERC721Enumerable {
-    using Counters for Counters.Counter;
+struct EventDetails {
+    string name;
+}
 
+contract Eventing is ERC721Enumerable {
+    using Counters for Counters.Counter;
     Counters.Counter private ticketIds;
+    Counters.Counter private eventIds;
+
+    // price 0 mean not for sale
+    mapping(uint256 => uint256) private ticketsPrice;
+
+    mapping(uint256 => address) private eventOwner;
+    mapping(uint256 => uint256) private eventBalances;
+    mapping(uint256 => uint256) private eventStartIndex;
 
     Ticket[] private ticketsDetails;
+    EventDetails[] private eventDetails;
 
-    mapping(uint256 => bool) private ticketsForSale;
+    event NewEvent(address indexed owner, uint256 indexed eventId, string name);
 
-    constructor(
-        string memory _eventName,
+    constructor() ERC721("Ticketing", "TCK") {}
+
+    function createEvent(
         uint256 _ticketsAmount,
         uint256 _seetsOnRow,
-        uint256 _startPrice
-    ) ERC721(_eventName, "TCK") {
+        uint256 _startPrice,
+        string calldata name
+    ) external {
+        uint256 eventId = eventIds.current();
+
+        eventOwner[eventId] = msg.sender;
+        eventStartIndex[eventId] = ticketIds.current();
+        eventBalances[eventId] = _ticketsAmount;
+
+        eventDetails.push(EventDetails(name));
+
         mintBatchTicket(msg.sender, _ticketsAmount, _seetsOnRow, _startPrice);
+
+        eventIds.increment();
+    }
+
+    function getEventAmount() external view returns (uint256) {
+        return eventIds.current();
+    }
+
+    function getEventDetail(uint256 _eventId)
+        external
+        view
+        returns (EventDetails memory details, address owner)
+    {
+        details = eventDetails[_eventId];
+        owner = eventOwner[_eventId];
+    }
+
+    function getAllEventTickets(uint256 eventId)
+        external
+        view
+        returns (uint256 startIndex, uint256 lenght)
+    {
+        startIndex = eventStartIndex[eventId];
+        lenght = eventBalances[eventId];
     }
 
     function mintBatchTicket(
@@ -41,6 +86,8 @@ contract TicketsCollection is ERC721Enumerable {
 
         uint256 currentSeetInRow = 0;
 
+        uint256 newItemId = ticketIds.current();
+
         for (uint256 i = 0; i < _ticketsAmount; i++) {
             currentSeetInRow += 1;
 
@@ -49,28 +96,22 @@ contract TicketsCollection is ERC721Enumerable {
                 row++;
             }
 
-            uint256 newItemId = ticketIds.current();
-
             _mint(_author, newItemId);
 
-            ticketsDetails.push(
-                Ticket(true, row, currentSeetInRow, _startPrice)
-            );
+            ticketsDetails.push(Ticket(true, row, currentSeetInRow));
 
-            ticketsForSale[newItemId] = true;
+            ticketsPrice[newItemId] = _startPrice;
 
             ticketIds.increment();
+            newItemId = ticketIds.current();
         }
     }
 
     function buyTicket(uint256 _ticketId) external payable {
-        require(ticketsForSale[_ticketId], "Ticket not for sale!");
+        require(ticketsPrice[_ticketId] > 0, "Ticket not for sale!");
+        require(msg.value >= ticketsPrice[_ticketId], "Not enought money!");
 
         address ticketOwner = ownerOf(_ticketId);
-
-        Ticket storage _ticket = ticketsDetails[_ticketId];
-
-        require(msg.value >= _ticket.price);
 
         (bool success, ) = ticketOwner.call{value: msg.value}("");
 
@@ -78,25 +119,28 @@ contract TicketsCollection is ERC721Enumerable {
 
         _transfer(ticketOwner, msg.sender, _ticketId);
 
-        ticketsForSale[_ticketId] = false;
+        ticketsPrice[_ticketId] = 0;
     }
 
     function sellTicket(uint256 _ticketId, uint256 _price) external {
         require(ownerOf(_ticketId) == msg.sender, "You not a owner!");
-
-        Ticket storage _ticket = ticketsDetails[_ticketId];
-        _ticket.price = _price;
-
-        ticketsForSale[_ticketId] = true;
+        ticketsPrice[_ticketId] = _price;
     }
 
     function getTicketDetails(uint256 _ticketId)
         external
         view
-        returns (Ticket memory)
+        returns (
+            Ticket memory ticket,
+            uint256 price,
+            address owner
+        )
     {
         require(_ticketId < ticketsDetails.length);
-        return ticketsDetails[_ticketId];
+
+        ticket = ticketsDetails[_ticketId];
+        price = ticketsPrice[_ticketId];
+        owner = ownerOf(_ticketId);
     }
 
     //////////////////////////validation///////////////////////
@@ -120,8 +164,8 @@ contract TicketsCollection is ERC721Enumerable {
         usedSignatures[_signature] = true;
 
         // use ticket
-        Ticket storage tik = ticketsDetails[_ticketId];
-        tik.enable = false;
+        Ticket storage ticket = ticketsDetails[_ticketId];
+        ticket.enable = false;
     }
 
     function getMessageHashForToken(uint256 _tokenId)
